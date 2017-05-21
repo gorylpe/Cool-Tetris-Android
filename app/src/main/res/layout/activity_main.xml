@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        tools:context="com.example.piotr.tetris.MainActivity"
+        android:background="@color/background">
+
+    <com.example.piotr.tetris.custom.MainMenuSurfaceView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/main_menu_surfaceview"/>
+
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:src="@drawable/leaderboards"
+            android:id="@+id/leaderboards_button"
+            android:layout_alignParentBottom="true"
+            android:padding="5dp"
+            android:layout_marginBottom="20dp"
+            android:onClick="leaderboards"/>
+
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:src="@drawable/start"
+            android:layout_above="@id/leaderboards_button"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:layout_marginTop="10dp"
+            android:paddingTop="5dp"
+            android:id="@+id/start_game_button"
+            android:onClick="startGame"/>
+
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/logo"
+            android:layout_above="@id/start_game_button"/>
+
+</RelativeLayout>

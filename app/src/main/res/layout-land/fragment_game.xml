@@ -1,0 +1,75 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              tools:context="com.example.piotr.tetris.GameFragment"
+              android:gravity="center"
+              android:orientation="horizontal">
+
+
+    <com.example.piotr.tetris.custom.GameSurfaceView
+            android:id="@+id/game_surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"/>
+
+    <com.example.piotr.tetris.custom.CustomLinearLayout
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
+            android:background="@color/background"
+            android:orientation="vertical">
+        <TextView
+                android:text="@string/score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/score_text_size"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"/>
+        <TextView
+                android:text="0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/score_size"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:id="@+id/score"/>
+        <TextView
+                android:text="@string/level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/score_text_size"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"/>
+        <TextView
+                android:text="0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/score_size"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:id="@+id/level"/>
+        <TextView
+                android:text="@string/next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/score_text_size"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"/>
+        <com.example.piotr.tetris.custom.NextBlockPreviewSurfaceView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:maxWidth="120dp"
+                android:layout_margin="10dp"
+                android:id="@+id/next_block"/>
+    </com.example.piotr.tetris.custom.CustomLinearLayout>
+
+
+</LinearLayout>

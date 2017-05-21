@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Cool Tetris</string>
+    <string name="start_game">Start game</string>
+    <string name="leaderboards">Leaderboards</string>
+    <string name="paused_dialog">Paused</string>
+    <string name="paused_dialog_desc">Game is paused</string>
+    <string name="not_started_dialog">Starting game</string>
+    <string name="not_started_dialog_desc">Game is starting</string>
+    <string name="score">SCORE</string>
+    <string name="level">LEVEL</string>
+    <string name="next">NEXT</string>
+    <string name="ok">OK</string>
+    <string name="enter_name_hint">Enter name</string>
+    <string name="enter_name_invalid_hint">You must enter correct name!</string>
+    <string name="too_low_score_title">Too low score</string>
+    <string name="too_low_score_desc">Sorry! But your score is too low.</string>
+    <string name="new_score_title">New record!</string>
+    <string name="filename">scores.dat</string>
+</resources>
