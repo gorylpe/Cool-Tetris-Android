@@ -150,6 +150,14 @@ public class GameBoard extends Board {
         nextBlock = (Block)savedInstanceState.getSerializable("nextBlock");
     }
 
+    public Block getCurrentBlock(){
+        return currentBlock;
+    }
+
+    public Block getNextBlock(){
+        return nextBlock;
+    }
+
     private enum MoveType{
         CREATE_BLOCK,
         MOVE_DOWN,

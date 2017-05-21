@@ -64,16 +64,16 @@ public class Board {
         borderPaint.setColor(R.color.border);
     }
 
-    public Paint getPaint(int num){
-        return paints[num];
-    }
-
     public Paint getBackgroundPaint() {
         return backgroundPaint;
     }
 
     public Paint getBorderPaint(){
         return borderPaint;
+    }
+
+    public Paint getPaint(int i){
+        return paints[i];
     }
 
     public int getColumns(){
@@ -86,6 +86,10 @@ public class Board {
 
     public Field getField(int x, int y){
         return fields[x][y];
+    }
+
+    public Paint getFieldPaint(int x, int y){
+        return paints[fields[x][y].getValue()];
     }
 
     public void setField(int x, int y, Field field){

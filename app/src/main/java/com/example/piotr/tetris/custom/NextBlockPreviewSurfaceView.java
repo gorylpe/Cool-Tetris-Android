@@ -6,17 +6,14 @@ import android.graphics.Paint;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
+import com.example.piotr.tetris.GameBoard;
 import com.example.piotr.tetris.PaintsContainer;
 import com.example.piotr.tetris.R;
 
 
 public class NextBlockPreviewSurfaceView extends SurfaceView{
 
-    private Paint[] paints;
-    private Paint backgroundPaint;
-
-    private int[][] nextBlock = null;
-    private int[] nextBlockNumber = null;
+    private GameBoard board;
 
 
     public NextBlockPreviewSurfaceView(Context context) {
@@ -53,27 +50,29 @@ public class NextBlockPreviewSurfaceView extends SurfaceView{
         setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), height);
     }
 
-    public void setBoard(int[][] nextBlock, int[] nextBlockNumber, PaintsContainer paintsContainer){
-        this.nextBlock = nextBlock;
-        this.nextBlockNumber = nextBlockNumber;
-        this.paints = paintsContainer.getBlockPaints();
-        this.backgroundPaint = paintsContainer.getBackgroundPaint();
+    public void setBoard(GameBoard board){
+        this.board = board;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (nextBlock != null) {
-            canvas.drawColor(backgroundPaint.getColor());
-            float fieldWidth = (float) getWidth() / 5;
-            float fieldHeight = (float) getHeight() / 5;
-            for (int i = 0; i < nextBlock.length; ++i) {
-                float x = (float)nextBlock[i][0] + 2.0f;
-                float y = (float)nextBlock[i][1] + 1.0f;
-                canvas.drawRect(x * fieldWidth + 1.0f,
-                        y * fieldHeight + 1.0f,
-                        (x + 1.0f) * fieldWidth - 2.0f,
-                        (y + 1.0f) * fieldHeight - 2.0f,
-                        paints[nextBlockNumber[0]]);
+        if (board != null) {
+            GameBoard.Block block = board.getNextBlock();
+            if(block != null) {
+                canvas.drawColor(board.getBackgroundPaint().getColor());
+                float fieldWidth = (float) getWidth() / 5;
+                float fieldHeight = (float) getHeight() / 5;
+
+                int[][] localCoords = block.getLocalCoords();
+                for (int[] coords : localCoords) {
+                    float x = (float)(coords[0] + 2.0f);
+                    float y = (float)(coords[1] + 1.0f);
+                    canvas.drawRect(x * fieldWidth + 1.0f,
+                            y * fieldHeight + 1.0f,
+                            (x + 1.0f) * fieldWidth - 2.0f,
+                            (y + 1.0f) * fieldHeight - 2.0f,
+                            block.getPaint());
+                }
             }
         }
     }
