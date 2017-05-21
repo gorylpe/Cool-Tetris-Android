@@ -53,19 +53,6 @@ public class GameFragment extends Fragment implements Runnable {
     private boolean isAccelerated;
 
 
-
-
-    //number of block, rotation, x, y
-    private final int blocks[][][][] = {
-            {{{-2,0},{-1,0},{0,0},{1,0}} , {{0,-1},{0,0},{0,1},{0,2}}},
-            {{{-1,0},{0,0},{1,0},{1,1}} , {{-1,1},{0,1},{0,0},{0,-1}} , {{-1,-1},{-1,0},{0,0},{1,0}} , {{1,-1},{0,-1},{0,0},{0,1}}},
-            {{{-1,1},{-1,0},{0,0},{1,0}}, {{-1,-1},{0,-1},{0,0},{0,1}}, {{-1,0},{0,0},{1,0},{1,-1}} , {{0,-1},{0,0},{0,1},{1,1}}},
-            {{{0,0},{1,0},{0,1},{1,1}}},
-            {{{-1,1},{0,1},{0,0},{1,0}} , {{-1,-1},{-1,0},{0,0},{0,1}}},
-            {{{-1,0},{0,0},{1,0},{0,1}} , {{-1,0},{0,0},{0,-1},{0,1}} , {{-1,0},{0,0},{1,0},{0,-1}} , {{0,0},{0,-1},{0,1},{1,0}}},
-            {{{-1,0},{0,0},{0,1},{1,1}} , {{-1,1},{-1,0},{0,0},{0,-1}}}
-    };
-
     private int currentBlock[][];
     private int currentBlockPosition[];
     private int currentBlockRotation;
@@ -115,7 +102,6 @@ public class GameFragment extends Fragment implements Runnable {
         outState.putInt("level", level);
         outState.putFloat("blockMoveDelay", blockMoveDelay);
         outState.putSerializable("nextMove", nextMove);
-        outState.putSerializable("fields", fields);
         outState.putSerializable("currentBlock", currentBlock);
         outState.putSerializable("currentBlockNumber", currentBlockNumber);
         Log.d("level save", Integer.toString(currentBlockNumber[0]));
@@ -132,11 +118,7 @@ public class GameFragment extends Fragment implements Runnable {
         redrawLevel();
         blockMoveDelay = savedInstanceState.getFloat("blockMoveDelay");
         nextMove = (BlockMoveState)savedInstanceState.getSerializable("nextMove");
-        Field[][] newFields = (Field[][])savedInstanceState.getSerializable("fields");
-        for(int i = 0; i < fields.length; ++i){
-            for(int j = 0; j < fields[i].length; ++j)
-                fields[i][j] = newFields[i][j];
-        }
+
         int[][] newCurrentBlock = (int[][])savedInstanceState.getSerializable("currentBlock");
         for(int i = 0; i < currentBlock.length; ++i){
             for(int j = 0; j < currentBlock[i].length; ++j)

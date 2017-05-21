@@ -11,17 +11,19 @@
     <color name="orange">#FFA500</color>
     <color name="yellow">#FFFF00</color>
     <color name="purple">#800080</color>
+    <color name="black">#000000</color>
     <color name="background">#000000</color>
     <color name="border">#777777</color>
     <color name="white">#FFFFFF</color>
     
     <array name="tetris_colors">
-        <item>@color/red</item>
+        <item>@color/black</item>
+        <item>@color/cyan</item>
+        <item>@color/blue</item>
         <item>@color/orange</item>
         <item>@color/yellow</item>
         <item>@color/green</item>
-        <item>@color/cyan</item>
-        <item>@color/blue</item>
         <item>@color/purple</item>
+        <item>@color/red</item>
     </array>
 </resources>

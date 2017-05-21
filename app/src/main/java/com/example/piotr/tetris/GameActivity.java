@@ -160,21 +160,6 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     }
 
     @Override
-    public Paint[] getBlockPaints() {
-        return paints;
-    }
-
-    @Override
-    public Paint getBackgroundPaint() {
-        return backgroundPaint;
-    }
-
-    @Override
-    public Paint getBorderPaint(){
-        return borderPaint;
-    }
-
-    @Override
     public void onGameEnd(int score) {
         Intent intent = new Intent();
         intent.putExtra("score", score);
