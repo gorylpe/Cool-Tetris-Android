@@ -419,11 +419,9 @@ public class GameFragment extends Fragment implements Runnable {
         redrawLevel();
     }
 
-    //todo set next block
-
     public void moveLeft() {
-        synchronized (blockMoveLock) {
-            if(nextMove == BlockMoveState.MOVE_BLOCK) {
+        if(nextMove == BlockMoveState.MOVE_BLOCK) {
+            synchronized (blockMoveLock) {
                 boolean isAvailable = true;
                 for (int i = 0; i < currentBlock.length; ++i) {
                     int x = currentBlock[i][0] + currentBlockPosition[0];
@@ -469,65 +467,7 @@ public class GameFragment extends Fragment implements Runnable {
         }
     }
 
-    private enum RotationType{
-        IN_PLACE,
-        MOVE_LEFT,
-        MOVE_RIGHT,
-        NOT_POSSIBLE
-    }
 
-    private RotationType checkIfThereIsPlaceForRotation(int rotation){
-        RotationType rotationType = RotationType.IN_PLACE;
-        int[][] blockToCheck = blocks[currentBlockNumber[0]][rotation];
-        for (int i = 0; i < blockToCheck.length; ++i) {
-            int x = blockToCheck[i][0] + currentBlockPosition[0];
-            int y = blockToCheck[i][1] + currentBlockPosition[1];
-            if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                rotationType = RotationType.NOT_POSSIBLE;
-                break;
-            } else {
-                if(fields[x][y] != Field.EMPTY){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                }
-            }
-        }
-        //check move left
-        if(rotationType == RotationType.NOT_POSSIBLE){
-            rotationType = RotationType.MOVE_LEFT;
-            for (int i = 0; i < blockToCheck.length; ++i) {
-                int x = blockToCheck[i][0] + currentBlockPosition[0] - 1;
-                int y = blockToCheck[i][1] + currentBlockPosition[1];
-                if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                } else {
-                    if(fields[x][y] != Field.EMPTY){
-                        rotationType = RotationType.NOT_POSSIBLE;
-                        break;
-                    }
-                }
-            }
-        }
-        //check move right
-        if(rotationType == RotationType.NOT_POSSIBLE){
-            rotationType = RotationType.MOVE_RIGHT;
-            for (int i = 0; i < blockToCheck.length; ++i) {
-                int x = blockToCheck[i][0] + currentBlockPosition[0] + 1;
-                int y = blockToCheck[i][1] + currentBlockPosition[1];
-                if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                } else {
-                    if(fields[x][y] != Field.EMPTY){
-                        rotationType = RotationType.NOT_POSSIBLE;
-                        break;
-                    }
-                }
-            }
-        }
-        return rotationType;
-    }
 
     public void rotate() {
         synchronized (blockMoveLock) {

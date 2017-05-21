@@ -100,6 +100,10 @@ public class Board {
         return fields[x][y];
     }
 
+    public void setField(int x, int y, Field field){
+        fields[x][y] = field;
+    }
+
     public void saveToBundle(Bundle outState){
         outState.putSerializable("fields", fields);
     }
