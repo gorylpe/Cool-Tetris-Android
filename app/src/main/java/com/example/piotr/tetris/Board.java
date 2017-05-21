@@ -5,6 +5,10 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.os.Bundle;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class Board {
 
     private Paint[] paints;
@@ -29,26 +33,10 @@ public class Board {
         public final int getValue(){
             return value;
         }
-        public static Field getFromValue(int value){
-            switch(value){
-                case 0:
-                    return Field.EMPTY;
-                case 1:
-                    return Field.CYAN;
-                case 2:
-                    return Field.BLUE;
-                case 3:
-                    return Field.ORANGE;
-                case 4:
-                    return Field.YELLOW;
-                case 5:
-                    return Field.GREEN;
-                case 6:
-                    return Field.PURPLE;
-                case 7:
-                    return Field.RED;
-            }
-            return Field.EMPTY;
+
+        private static final List<Field> values = Collections.unmodifiableList(Arrays.asList(Field.values()));
+        public static Field get(int i){
+            return values.get(i);
         }
     }
 

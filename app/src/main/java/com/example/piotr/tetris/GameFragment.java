@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,15 +51,7 @@ public class GameFragment extends Fragment implements Runnable {
     private final float blockMoveAcceleratedDelay = blockMoveStopDelay / 2;
     private boolean isAccelerated;
 
-
-    private int currentBlock[][];
-    private int currentBlockPosition[];
-    private int currentBlockRotation;
-    private int currentBlockNumber[];
-    private int nextBlock[][];
-    private final int nextBlockPosition[] = {4,1};
-    private final int nextBlockRotation = 0;
-    private int nextBlockNumber[];
+    private GameBoard board;
 
     public GameFragment() {
         random = new Random();
@@ -68,23 +59,7 @@ public class GameFragment extends Fragment implements Runnable {
         notEnded = true;
         paused = false;
 
-        currentBlock = new int[4][2];
-        for(int i = 0; i < currentBlock.length; ++i){
-            for(int j = 0; j < currentBlock[i].length; ++j){
-                currentBlock[i][j] = -1;
-            }
-        }
-        currentBlockNumber = new int[1];
-        currentBlockPosition = new int[2];
-
-        nextBlock = new int[4][2];
-        nextBlockNumber = new int[1];
-        nextBlockNumber[0] = random.nextInt(blocks.length);
-        for(int i = 0; i < nextBlock.length; ++i){
-            for(int j = 0; j < nextBlock[i].length; ++j){
-                nextBlock[i][j] = blocks[nextBlockNumber[0]][0][i][j];
-            }
-        }
+        board = new GameBoard(getActivity(), 10, 20);
 
         nextMove = BlockMoveState.GENERATE_BLOCK;
         canBlockMakeMove = true;
@@ -102,42 +77,20 @@ public class GameFragment extends Fragment implements Runnable {
         outState.putInt("level", level);
         outState.putFloat("blockMoveDelay", blockMoveDelay);
         outState.putSerializable("nextMove", nextMove);
-        outState.putSerializable("currentBlock", currentBlock);
-        outState.putSerializable("currentBlockNumber", currentBlockNumber);
-        Log.d("level save", Integer.toString(currentBlockNumber[0]));
-        outState.putSerializable("currentBlockPosition", currentBlockPosition);
-        outState.putInt("currentBlockOrientation", currentBlockRotation);
-        outState.putSerializable("nextBlock", nextBlock);
-        outState.putSerializable("nextBlockNumber", nextBlockNumber);
+        board.saveToBundle(outState);
     }
 
     public void restoreFromBundle(Bundle savedInstanceState) {
         score = savedInstanceState.getInt("score");
         redrawScore();
+
         level = savedInstanceState.getInt("level");
         redrawLevel();
+
         blockMoveDelay = savedInstanceState.getFloat("blockMoveDelay");
         nextMove = (BlockMoveState)savedInstanceState.getSerializable("nextMove");
-
-        int[][] newCurrentBlock = (int[][])savedInstanceState.getSerializable("currentBlock");
-        for(int i = 0; i < currentBlock.length; ++i){
-            for(int j = 0; j < currentBlock[i].length; ++j)
-                currentBlock[i][j] = newCurrentBlock[i][j];
-        }
-        currentBlockNumber[0] = ((int[])savedInstanceState.getSerializable("currentBlockNumber"))[0];
-        Log.d("level restore", Integer.toString(currentBlockNumber[0]));
-        currentBlockRotation = savedInstanceState.getInt("currentBlockRotation");
-        int[] newCurrentBlockPosition = (int[])savedInstanceState.getSerializable("currentBlockPosition");
-        for(int i = 0; i < currentBlockPosition.length; ++i){
-            currentBlockPosition[i] = newCurrentBlockPosition[i];
-        }
+        board.restoreFromBundle(savedInstanceState);
         redrawFields();
-        int[][] newNextBlock = (int[][])savedInstanceState.getSerializable("nextBlock");
-        for(int i = 0; i < nextBlock.length; ++i){
-            for(int j = 0; j < nextBlock[i].length; ++j)
-                nextBlock[i][j] = newNextBlock[i][j];
-        }
-        nextBlockNumber[0] = ((int[])savedInstanceState.getSerializable("nextBlockNumber"))[0];
         redrawNextBlock();
     }
 
@@ -146,9 +99,9 @@ public class GameFragment extends Fragment implements Runnable {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_game, container, false);
         gameSurfaceView = (GameSurfaceView)view.findViewById(R.id.game_surface_view);
-        gameSurfaceView.setFieldsCurrentBlockAndPaints(fields, currentBlock, currentBlockPosition, currentBlockNumber, paintsContainer);
+        gameSurfaceView.setBoard(board);
         nextBlockPreviewSurfaceView = (NextBlockPreviewSurfaceView)view.findViewById(R.id.next_block);
-        nextBlockPreviewSurfaceView.setNextBlockAndPaints(nextBlock, nextBlockNumber, paintsContainer);
+        nextBlockPreviewSurfaceView.setBoard(board);
         return view;
     }
 
@@ -470,36 +423,7 @@ public class GameFragment extends Fragment implements Runnable {
 
 
     public void rotate() {
-        synchronized (blockMoveLock) {
-            if(nextMove == BlockMoveState.MOVE_BLOCK) {
-                int nextRotation = currentBlockRotation - 1;
-                if(nextRotation < 0)
-                    nextRotation += blocks[currentBlockNumber[0]].length;
-                switch(checkIfThereIsPlaceForRotation(nextRotation)){
-                    case IN_PLACE:
-                        for (int i = 0; i < currentBlock.length; ++i) {
-                            currentBlock[i][0] = blocks[currentBlockNumber[0]][nextRotation][i][0];
-                            currentBlock[i][1] = blocks[currentBlockNumber[0]][nextRotation][i][1];
-                        }
-                        currentBlockRotation = nextRotation;
-                        break;
-                    case MOVE_LEFT:
-                        for (int i = 0; i < currentBlock.length; ++i) {
-                            currentBlock[i][0] = blocks[currentBlockNumber[0]][nextRotation][i][0] - 1;
-                            currentBlock[i][1] = blocks[currentBlockNumber[0]][nextRotation][i][1];
-                        }
-                        currentBlockRotation = nextRotation;
-                        break;
-                    case MOVE_RIGHT:
-                        for (int i = 0; i < currentBlock.length; ++i) {
-                            currentBlock[i][0] = blocks[currentBlockNumber[0]][nextRotation][i][0] + 1;
-                            currentBlock[i][1] = blocks[currentBlockNumber[0]][nextRotation][i][1];
-                        }
-                        currentBlockRotation = nextRotation;
-                        break;
-                }
-            }
-        }
+        board.rotateLeftCurrentBlock();
     }
 
     public void setAccelerated(){

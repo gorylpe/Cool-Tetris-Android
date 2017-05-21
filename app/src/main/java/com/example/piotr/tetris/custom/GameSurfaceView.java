@@ -55,7 +55,7 @@ public class GameSurfaceView extends SurfaceView {
     }
 
 
-    public void setFieldsCurrentBlockAndPaints(GameFragment.Field[][] fields, int[][] currentBlock, int[] currentBlockPosition, int[] currentBlockNumber, PaintsContainer paintsContainer){
+    public void setBoard(GameFragment.Field[][] fields, int[][] currentBlock, int[] currentBlockPosition, int[] currentBlockNumber, PaintsContainer paintsContainer){
         this.fields = fields;
         this.paints = paintsContainer.getBlockPaints();
         this.backgroundPaint = paintsContainer.getBackgroundPaint();

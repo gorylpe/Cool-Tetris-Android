@@ -53,7 +53,7 @@ public class NextBlockPreviewSurfaceView extends SurfaceView{
         setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), height);
     }
 
-    public void setNextBlockAndPaints(int[][] nextBlock, int[] nextBlockNumber, PaintsContainer paintsContainer){
+    public void setBoard(int[][] nextBlock, int[] nextBlockNumber, PaintsContainer paintsContainer){
         this.nextBlock = nextBlock;
         this.nextBlockNumber = nextBlockNumber;
         this.paints = paintsContainer.getBlockPaints();

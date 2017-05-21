@@ -2,9 +2,10 @@ package com.example.piotr.tetris;
 
 import android.content.Context;
 import android.graphics.Paint;
+import android.os.Bundle;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Created by Piotr on 21.05.2017.
@@ -32,6 +33,15 @@ public class GameBoard extends Board {
             return value;
         }
 
+        private static final List<BlockCoords> values = Collections.unmodifiableList(Arrays.asList(BlockCoords.values()));
+        public static BlockCoords get(int i){
+            return values.get(i);
+        }
+
+        public static int getSize(){
+            return values.size();
+        }
+
         public int[][] getCoords(int rotation){
             return block[rotation];
         }
@@ -41,7 +51,7 @@ public class GameBoard extends Board {
         }
     }
 
-    public class Block{
+    public class Block implements Serializable{
         private BlockCoords coords;
         private int rotation;
         private int x;
@@ -69,6 +79,11 @@ public class GameBoard extends Board {
                 rotation--;
             }
         }
+
+        public void moveUp(){
+            y--;
+        }
+
 
         public void moveDown(){
             y++;
@@ -98,58 +113,146 @@ public class GameBoard extends Board {
             return coords.getCoords(rotation);
         }
 
-        public int[][] getRotatedLocalCoords(int rotation){
-            return coords.getCoords(rotation);
-        }
-
         public Field getFieldType(){
-            return Field.getFromValue(coords.getValue());
+            return Field.get(coords.getValue());
         }
     }
+
+    private Random random;
 
     private final Object moveLock = new Object();
 
     private Block currentBlock;
     private Block nextBlock;
 
+    private final int startX = 4;
+    private final int startY = 1;
+
     public GameBoard(Context context, int xSize, int ySize) {
         super(context, xSize, ySize);
+
+        random = new Random();
+        nextBlock = new Block(BlockCoords.get(random.nextInt(BlockCoords.getSize())), startX, startY);
+        generateNewBlock();
     }
 
-    public boolean checkIfCanMoveDownCurrentBlock() {
-        synchronized (moveLock) {
-            boolean isFree = true;
-            int[][] localCoords = currentBlock.getLocalCoords();
-            for (int i = 0; i < localCoords.length; ++i) {
-                int x = localCoords[i][0] + currentBlock.getX();
-                int y = localCoords[i][1] + currentBlock.getY();
+    @Override
+    public void saveToBundle(Bundle outState){
+        super.saveToBundle(outState);
+        outState.putSerializable("currentBlock", currentBlock);
+        outState.putSerializable("nextBlock", nextBlock);
+    }
 
-                if (y >= getRows() - 1) {
+    @Override
+    public void restoreFromBundle(Bundle savedInstanceState){
+        super.restoreFromBundle(savedInstanceState);
+        currentBlock = (Block)savedInstanceState.getSerializable("currentBlock");
+        nextBlock = (Block)savedInstanceState.getSerializable("nextBlock");
+    }
+
+    private enum MoveType{
+        CREATE_BLOCK,
+        MOVE_DOWN,
+        MOVE_LEFT,
+        MOVE_RIGHT,
+        ROTATE_IN_PLACE,
+        ROTATE_WITH_MOVE_LEFT,
+        ROTATE_WITH_MOVE_RIGHT
+    }
+
+    public boolean checkIfMoveCurrentBlockIsPossible(MoveType moveType) {
+        switch(moveType){
+            case MOVE_DOWN:
+                currentBlock.moveDown();
+                break;
+            case MOVE_LEFT:
+                currentBlock.moveLeft();
+                break;
+            case MOVE_RIGHT:
+                currentBlock.moveRight();
+                break;
+            case ROTATE_IN_PLACE:
+                currentBlock.rotateLeft();
+                break;
+            case ROTATE_WITH_MOVE_LEFT:
+                currentBlock.rotateLeft();
+                currentBlock.moveLeft();
+                break;
+            case ROTATE_WITH_MOVE_RIGHT:
+                currentBlock.rotateLeft();
+                currentBlock.moveRight();
+                break;
+        }
+
+        boolean isFree = true;
+        int[][] localCoords = currentBlock.getLocalCoords();
+        for (int i = 0; i < localCoords.length; ++i) {
+            int x = localCoords[i][0] + currentBlock.getX();
+            int y = localCoords[i][1] + currentBlock.getY();
+
+            if (x < 0 || x >= getColumns() ||  y < 0 || y >= getRows()) {
+                isFree = false;
+                break;
+            } else {
+                if (getField(x, y) != Field.EMPTY) {
                     isFree = false;
                     break;
-                } else {
-                    if (getField(x, y + 1) != Field.EMPTY) {
-                        isFree = false;
-                        break;
-                    }
                 }
             }
-            return isFree;
         }
+
+        switch(moveType){
+            case MOVE_DOWN:
+                currentBlock.moveUp();
+                break;
+            case MOVE_LEFT:
+                currentBlock.moveRight();
+                break;
+            case MOVE_RIGHT:
+                currentBlock.moveLeft();
+                break;
+            case ROTATE_IN_PLACE:
+                currentBlock.rotateRight();
+                break;
+            case ROTATE_WITH_MOVE_LEFT:
+                currentBlock.rotateRight();
+                currentBlock.moveRight();
+                break;
+            case ROTATE_WITH_MOVE_RIGHT:
+                currentBlock.rotateRight();
+                currentBlock.moveLeft();
+                break;
+        }
+
+        return isFree;
     }
 
-    public void moveCurrentBlock(){
+    public boolean generateNewBlock(){
+        currentBlock = nextBlock;
+        if(!checkIfMoveCurrentBlockIsPossible(MoveType.CREATE_BLOCK))
+            return false;
+
+        nextBlock = new Block(BlockCoords.get(random.nextInt(BlockCoords.getSize())), startX, startY);
+
+        return true;
+    }
+
+    public boolean moveDownCurrentBlock(){
+        boolean result;
         synchronized (moveLock){
-            currentBlock.moveDown();
+            result = checkIfMoveCurrentBlockIsPossible(MoveType.MOVE_DOWN);
+            if(result)
+                currentBlock.moveDown();
         }
+        return result;
     }
 
     public void placeCurrentBlock(){
         synchronized (moveLock){
             int[][] localCoords = currentBlock.getLocalCoords();
-            for(int i = 0; i < localCoords.length; ++i){
-                int x = localCoords[i][0] + currentBlock.getX();
-                int y = localCoords[i][1] + currentBlock.getY();
+            for(int[] fieldCoords : localCoords){
+                int x = fieldCoords[0] + currentBlock.getX();
+                int y = fieldCoords[1] + currentBlock.getY();
 
                 setField(x, y, currentBlock.getFieldType());
             }
@@ -195,22 +298,7 @@ public class GameBoard extends Board {
 
     public void moveLeftCurrentBlock() {
         synchronized (moveLock) {
-            boolean isAvailable = true;
-            int[][] localCoords = currentBlock.getLocalCoords();
-            for (int i = 0; i < localCoords.length; ++i) {
-                int x = localCoords[i][0] + currentBlock.getX();
-                int y = localCoords[i][1] + currentBlock.getY();
-                if (x <= 0) {
-                    isAvailable = false;
-                    break;
-                } else {
-                    if (getField(x - 1, y) != Field.EMPTY) {
-                        isAvailable = false;
-                        break;
-                    }
-                }
-            }
-            if (isAvailable) {
+            if (checkIfMoveCurrentBlockIsPossible(MoveType.MOVE_LEFT)) {
                 currentBlock.moveLeft();
             }
         }
@@ -218,84 +306,28 @@ public class GameBoard extends Board {
 
     public void moveRightCurrentBlock() {
         synchronized (moveLock) {
-            boolean isAvailable = true;
-            int[][] localCoords = currentBlock.getLocalCoords();
-            for (int i = 0; i < localCoords.length; ++i) {
-                int x = localCoords[i][0] + currentBlock.getX();
-                int y = localCoords[i][1] + currentBlock.getY();
-                if (x >= getColumns() - 1) {
-                    isAvailable = false;
-                    break;
-                } else {
-                    if (getField(x + 1, y) != Field.EMPTY) {
-                        isAvailable = false;
-                        break;
-                    }
-                }
-            }
-            if (isAvailable) {
+            if (checkIfMoveCurrentBlockIsPossible(MoveType.MOVE_RIGHT)) {
                 currentBlock.moveRight();
             }
         }
     }
 
-    private enum RotationType{
-        IN_PLACE,
-        MOVE_LEFT,
-        MOVE_RIGHT,
-        NOT_POSSIBLE
-    }
+    public void rotateLeftCurrentBlock() {
+        synchronized (moveLock) {
+            if(checkIfMoveCurrentBlockIsPossible(MoveType.ROTATE_IN_PLACE)){
 
-    private RotationType checkIfThereIsPlaceForRotation(int rotation){
-        RotationType rotationType = RotationType.IN_PLACE;
-        int[][] blockToCheck = blocks[currentBlockNumber[0]][rotation];
-        for (int i = 0; i < blockToCheck.length; ++i) {
-            int x = blockToCheck[i][0] + currentBlockPosition[0];
-            int y = blockToCheck[i][1] + currentBlockPosition[1];
-            if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                rotationType = RotationType.NOT_POSSIBLE;
-                break;
-            } else {
-                if(fields[x][y] != Field.EMPTY){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                }
+                currentBlock.rotateLeft();
+
+            } else if(checkIfMoveCurrentBlockIsPossible(MoveType.ROTATE_WITH_MOVE_LEFT)){
+
+                currentBlock.rotateLeft();
+                currentBlock.moveLeft();
+
+            } else if(checkIfMoveCurrentBlockIsPossible(MoveType.ROTATE_WITH_MOVE_RIGHT)){
+
+                currentBlock.rotateLeft();
+                currentBlock.moveRight();
             }
         }
-        //check move left
-        if(rotationType == RotationType.NOT_POSSIBLE){
-            rotationType = RotationType.MOVE_LEFT;
-            for (int i = 0; i < blockToCheck.length; ++i) {
-                int x = blockToCheck[i][0] + currentBlockPosition[0] - 1;
-                int y = blockToCheck[i][1] + currentBlockPosition[1];
-                if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                } else {
-                    if(fields[x][y] != Field.EMPTY){
-                        rotationType = RotationType.NOT_POSSIBLE;
-                        break;
-                    }
-                }
-            }
-        }
-        //check move right
-        if(rotationType == RotationType.NOT_POSSIBLE){
-            rotationType = RotationType.MOVE_RIGHT;
-            for (int i = 0; i < blockToCheck.length; ++i) {
-                int x = blockToCheck[i][0] + currentBlockPosition[0] + 1;
-                int y = blockToCheck[i][1] + currentBlockPosition[1];
-                if(x < 0 || x >= fields.length || y < 0 || y >= fields[0].length){
-                    rotationType = RotationType.NOT_POSSIBLE;
-                    break;
-                } else {
-                    if(fields[x][y] != Field.EMPTY){
-                        rotationType = RotationType.NOT_POSSIBLE;
-                        break;
-                    }
-                }
-            }
-        }
-        return rotationType;
     }
 }
