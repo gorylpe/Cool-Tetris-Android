@@ -17,31 +17,29 @@ import java.util.*;
 
 public class GameFragment extends Fragment implements Runnable {
 
-    private Random random;
-
     private final long frameTimeInMs = 10;
+
+    private OnStateChangeListener listener;
+    private Handler uiHandler;
+    private GameSurfaceView gameSurfaceView;
+    private NextBlockPreviewSurfaceView nextBlockPreviewSurfaceView;
 
     private volatile int score;
     private volatile int level;
+    private final int maxLevel = 10;
 
     private boolean notEnded;
     private static final Object pauseLock = new Object();
     private boolean paused;
 
-    private OnStateChangeListener listener;
-    private PaintsContainer paintsContainer;
-    private Handler uiHandler;
-    private GameSurfaceView gameSurfaceView;
-    private NextBlockPreviewSurfaceView nextBlockPreviewSurfaceView;
 
-    private enum BlockMoveState {
+    private enum NextMoveState {
         GENERATE_BLOCK,
         MOVE_BLOCK
     }
 
     public static final Object blockMoveLock = new Object();
-    private boolean canBlockMakeMove;
-    private BlockMoveState nextMove;
+    private NextMoveState nextMove;
 
     private final float blockMoveStartDelay = 500.0f;
     private final float blockMoveStopDelay = 100.0f;
@@ -55,22 +53,20 @@ public class GameFragment extends Fragment implements Runnable {
     private GameBoard board;
 
     public GameFragment() {
-        random = new Random();
 
         notEnded = true;
         paused = false;
 
         board = new GameBoard(getActivity(), 10, 20);
 
-        nextMove = BlockMoveState.GENERATE_BLOCK;
-        canBlockMakeMove = true;
+        nextMove = NextMoveState.GENERATE_BLOCK;
 
         isAccelerated = false;
         blockMoveDelay = blockMoveStartDelay;
         blockMoveTimeAfterLastMove = 0.0f;
 
         score = 0;
-        level = 11 - (int)(blockMoveStartDelay / levelConst);
+        level = 0;
     }
 
     public void saveToBundle(Bundle outState){
@@ -89,9 +85,9 @@ public class GameFragment extends Fragment implements Runnable {
         redrawLevel();
 
         blockMoveDelay = savedInstanceState.getFloat("blockMoveDelay");
-        nextMove = (BlockMoveState)savedInstanceState.getSerializable("nextMove");
+        nextMove = (NextMoveState)savedInstanceState.getSerializable("nextMove");
         board.restoreFromBundle(savedInstanceState);
-        redrawFields();
+        redrawBoard();
         redrawNextBlock();
     }
 
@@ -117,12 +113,39 @@ public class GameFragment extends Fragment implements Runnable {
     }
 
 
-    private void redrawFields(){
+    private void redrawBoard(){
         uiHandler.post(new Runnable() {
             @Override
             public void run() {
                 if(gameSurfaceView != null)
                     gameSurfaceView.invalidate();
+            }
+        });
+    }
+
+    private void redrawNextBlock(){
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                nextBlockPreviewSurfaceView.invalidate();
+            }
+        });
+    }
+
+    private void redrawScore(){
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView)getView().findViewById(R.id.score)).setText(Integer.toString(score));
+            }
+        });
+    }
+
+    private void redrawLevel(){
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView)getView().findViewById(R.id.level)).setText(Integer.toString(level));
             }
         });
     }
@@ -134,44 +157,39 @@ public class GameFragment extends Fragment implements Runnable {
 
             switch(nextMove){
                 case GENERATE_BLOCK: {
-                    int blockNumber = random.nextInt(blocks.length);
-                    if(checkIfThereIsPlaceForNewBlock(blockNumber)){
-                        putNewBlock(blockNumber);
-                        nextMove = BlockMoveState.MOVE_BLOCK;
+                    if(board.generateNewBlock()){
+                        nextMove = NextMoveState.MOVE_BLOCK;
                     } else {
                         onGameEnd();
                     }
                     break;
                 }
                 case MOVE_BLOCK: {
-                    synchronized (blockMoveLock){
-                        if(isAccelerated){
-                            if (blockMoveTimeAfterLastMove > blockMoveAcceleratedDelay) {
-                                blockMoveTimeAfterLastMove = 0.0f;
-                                moveBlockDown();
-                            }
-                        } else {
-                            if (blockMoveTimeAfterLastMove > blockMoveDelay) {
-                                blockMoveTimeAfterLastMove = 0.0f;
-                                moveBlockDown();
-                            }
+                    if(isAccelerated){
+                        if (blockMoveTimeAfterLastMove > blockMoveAcceleratedDelay) {
+                            blockMoveTimeAfterLastMove = 0.0f;
+                            board.moveDownCurrentBlock();
+                        }
+                    } else {
+                        if (blockMoveTimeAfterLastMove > blockMoveDelay) {
+                            blockMoveTimeAfterLastMove = 0.0f;
+                            board.moveDownCurrentBlock();
                         }
                     }
                     break;
                 }
             }
 
-            redrawFields();
+            redrawBoard();
 
             blockMoveTimeAfterLastMove += (float)frameTimeInMs;
             blockMoveDelay += blockMoveDelayDelta;
             if(blockMoveDelay <= blockMoveStopDelay)
                 blockMoveDelay = blockMoveStopDelay;
 
-            int newLevel = 11 - (int)(blockMoveDelay / levelConst);
+            int newLevel = maxLevel + 1 - (int)(blockMoveDelay / levelConst);
             if(newLevel != level)
                 setLevel(newLevel);
-
 
             try{
                 Thread.sleep(frameTimeInMs - (System.currentTimeMillis() - lastTime));
@@ -201,145 +219,6 @@ public class GameFragment extends Fragment implements Runnable {
         }
     }
 
-    private boolean checkIfThereIsPlaceForNewBlock(int blockNumber){
-        boolean isFree = true;
-        for(int i = 0; i < blocks[blockNumber][0].length; ++i){
-            int x = blocks[blockNumber][0][i][0] + nextBlockPosition[0];
-            int y = blocks[blockNumber][0][i][1] + nextBlockPosition[1];
-            try{
-                if(fields[x][y] != Field.EMPTY){
-                    isFree = false;
-                    break;
-                }
-            } catch(ArrayIndexOutOfBoundsException e){}
-        }
-        return isFree;
-    }
-
-    private void redrawNextBlock(){
-        uiHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                nextBlockPreviewSurfaceView.invalidate();
-            }
-        });
-    }
-
-    private void putNewBlock(int newBlockNumber){
-        synchronized (blockMoveLock) {
-            currentBlockNumber[0] = nextBlockNumber[0];
-            currentBlockRotation = 0;
-            currentBlockPosition[0] = nextBlockPosition[0];
-            currentBlockPosition[1] = nextBlockPosition[1];
-            for (int i = 0; i < nextBlock.length; ++i) {
-                currentBlock[i][0] = nextBlock[i][0];
-                currentBlock[i][1] = nextBlock[i][1];
-            }
-            nextBlockNumber[0] = newBlockNumber;
-            for (int i = 0; i < blocks[newBlockNumber][nextBlockRotation].length; ++i) {
-                nextBlock[i][0] = blocks[newBlockNumber][nextBlockRotation][i][0];
-                nextBlock[i][1] = blocks[newBlockNumber][nextBlockRotation][i][1];
-            }
-            redrawNextBlock();
-        }
-    }
-
-    private void moveBlockDown(){
-        synchronized (blockMoveLock) {
-            boolean isFree = true;
-            for (int i = 0; i < currentBlock.length; ++i) {
-                int x = currentBlock[i][0] + currentBlockPosition[0];
-                int y = currentBlock[i][1] + currentBlockPosition[1];
-                if (y >= fields[0].length - 1) {
-                    isFree = false;
-                    break;
-                } else {
-                    if (fields[x][y + 1] != Field.EMPTY) {
-                        isFree = false;
-                        break;
-                    }
-                }
-            }
-            if(isFree){
-                ++currentBlockPosition[1];
-            } else {
-                nextMove = BlockMoveState.GENERATE_BLOCK;
-                placeBlock();
-                checkLinesToRemove();
-                removeCurrentBlock();
-            }
-        }
-    }
-
-    private void placeBlock() {
-        for (int i = 0; i < currentBlock.length; ++i) {
-            int x = currentBlock[i][0] + currentBlockPosition[0];
-            int y = currentBlock[i][1] + currentBlockPosition[1];
-            fields[x][y] = Field.getFromValue(currentBlockNumber[0]);
-        }
-    }
-
-    private void checkLinesToRemove(){
-        ArrayList<Integer> linesToCheck = new ArrayList<Integer>();
-        linesToCheck.ensureCapacity(blocks[0].length);
-        for (int i = 0; i < currentBlock.length; ++i){
-            int y = currentBlock[i][1] + currentBlockPosition[1];
-            boolean contains = false;
-            for(int j = 0; j < linesToCheck.size(); ++j){
-                if(linesToCheck.get(j).equals(y)){
-                    contains = true;
-                }
-            }
-            if(!contains)
-                linesToCheck.add(y);
-        }
-
-        Collections.sort(linesToCheck);
-
-        ArrayList<Integer> linesToDelete = new ArrayList<Integer>();
-        linesToCheck.ensureCapacity(blocks[0][0].length);
-
-        for(int i = 0; i < linesToCheck.size(); ++i){
-            int y = linesToCheck.get(i);
-            boolean toDelete = true;
-            for(int k = 0; k < fields.length; ++k){
-                if(fields[k][y] == Field.EMPTY){
-                    toDelete = false;
-                    break;
-                }
-            }
-            if(toDelete){
-                linesToDelete.add(y);
-            }
-        }
-
-        if(linesToDelete.size() > 0){
-            for(int i = 0; i < linesToDelete.size(); ++i){
-                int y = linesToDelete.get(i);
-                for(int j = y; j > 0; --j){
-                    for(int k = 0; k < fields.length; ++k){
-                        fields[k][j] = fields[k][j - 1];
-                    }
-                }
-            }
-
-            addScore(linesToDelete.size());
-        }
-    }
-
-    private void removeCurrentBlock(){
-        currentBlockPosition[1] = -1;
-    }
-
-    private void redrawScore(){
-        uiHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                ((TextView)getView().findViewById(R.id.score)).setText(Integer.toString(score));
-            }
-        });
-    }
-
     private void addScore(int scoreChange){
         switch(scoreChange){
             case 1:
@@ -359,72 +238,21 @@ public class GameFragment extends Fragment implements Runnable {
         redrawScore();
     }
 
-    private void redrawLevel(){
-        uiHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                ((TextView)getView().findViewById(R.id.level)).setText(Integer.toString(level));
-            }
-        });
-    }
-
     private void setLevel(int newLevel){
         level = newLevel;
         redrawLevel();
     }
 
+    public void rotate() {
+        board.rotateLeftCurrentBlock();
+    }
+
     public void moveLeft() {
-        if(nextMove == BlockMoveState.MOVE_BLOCK) {
-            synchronized (blockMoveLock) {
-                boolean isAvailable = true;
-                for (int i = 0; i < currentBlock.length; ++i) {
-                    int x = currentBlock[i][0] + currentBlockPosition[0];
-                    int y = currentBlock[i][1] + currentBlockPosition[1];
-                    if (x <= 0) {
-                        isAvailable = false;
-                        break;
-                    } else {
-                        if (fields[x - 1][y] != Field.EMPTY) {
-                            isAvailable = false;
-                            break;
-                        }
-                    }
-                }
-                if (isAvailable) {
-                    --currentBlockPosition[0];
-                }
-            }
-        }
+        board.moveLeftCurrentBlock();
     }
 
     public void moveRight() {
-        synchronized (blockMoveLock) {
-            if(nextMove == BlockMoveState.MOVE_BLOCK) {
-                boolean isAvailable = true;
-                for (int i = 0; i < currentBlock.length; ++i) {
-                    int x = currentBlock[i][0] + currentBlockPosition[0];
-                    int y = currentBlock[i][1] + currentBlockPosition[1];
-                    if (x >= fields.length - 1) {
-                        isAvailable = false;
-                        break;
-                    } else {
-                        if (fields[x + 1][y] != Field.EMPTY) {
-                            isAvailable = false;
-                            break;
-                        }
-                    }
-                }
-                if (isAvailable) {
-                    ++currentBlockPosition[0];
-                }
-            }
-        }
-    }
-
-
-
-    public void rotate() {
-        board.rotateLeftCurrentBlock();
+        board.moveRightCurrentBlock();
     }
 
     public void setAccelerated(){
@@ -454,12 +282,6 @@ public class GameFragment extends Fragment implements Runnable {
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
-        }
-        if(context instanceof PaintsContainer){
-            paintsContainer = (PaintsContainer)context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement PaintsContainer");
         }
     }
 

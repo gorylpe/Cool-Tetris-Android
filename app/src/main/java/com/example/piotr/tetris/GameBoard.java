@@ -132,8 +132,9 @@ public class GameBoard extends Board {
         super(context, xSize, ySize);
 
         random = new Random();
+
+        //must be to generate first currentBlock
         nextBlock = new Block(BlockCoords.get(random.nextInt(BlockCoords.getSize())), startX, startY);
-        generateNewBlock();
     }
 
     @Override

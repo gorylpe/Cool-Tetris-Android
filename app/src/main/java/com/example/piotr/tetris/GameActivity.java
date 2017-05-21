@@ -12,15 +12,7 @@ import android.util.Log;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class GameActivity extends AppCompatActivity implements  GameFragment.OnStateChangeListener,
-                                                                GameControlsFragment.OnBlockControlListener,
-                                                                PaintsContainer
-
-{
-
-    private Paint[] paints;
-    private Paint backgroundPaint;
-    private Paint borderPaint;
+public class GameActivity extends AppCompatActivity implements  GameFragment.OnStateChangeListener, GameControlsFragment.OnBlockControlListener {
 
     enum GameState{
         NOT_STARTED,
@@ -42,24 +34,6 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
-        paints = new Paint[8];
-        for(int i = 0; i < paints.length; ++i){
-            paints[i] = new Paint();
-        }
-        paints[0].setColor(ContextCompat.getColor(this, R.color.cyan));
-        paints[1].setColor(ContextCompat.getColor(this, R.color.blue));
-        paints[2].setColor(ContextCompat.getColor(this, R.color.orange));
-        paints[3].setColor(ContextCompat.getColor(this, R.color.yellow));
-        paints[4].setColor(ContextCompat.getColor(this, R.color.green));
-        paints[5].setColor(ContextCompat.getColor(this, R.color.purple));
-        paints[6].setColor(ContextCompat.getColor(this, R.color.red));
-        paints[7].setColor(ContextCompat.getColor(this, R.color.background));
-
-        backgroundPaint = new Paint();
-        backgroundPaint.setColor(ContextCompat.getColor(this, R.color.background));
-
-        borderPaint = new Paint();
-        borderPaint.setColor(ContextCompat.getColor(this, R.color.border));
         //must be before inflating xml
 
         moveLeftTimer = new Timer();
