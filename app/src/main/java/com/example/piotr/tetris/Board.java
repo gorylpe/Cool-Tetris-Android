@@ -4,6 +4,7 @@ package com.example.piotr.tetris;
 import android.content.Context;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,10 +59,10 @@ public class Board {
         }
 
         backgroundPaint = new Paint();
-        backgroundPaint.setColor(R.color.background);
+        backgroundPaint.setColor(ContextCompat.getColor(context, R.color.background));
 
         borderPaint = new Paint();
-        borderPaint.setColor(R.color.border);
+        borderPaint.setColor(ContextCompat.getColor(context, R.color.border));
     }
 
     public Paint getBackgroundPaint() {

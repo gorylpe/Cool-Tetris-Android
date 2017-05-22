@@ -36,8 +36,6 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
-        Log.d("oncreate", "d");
-
         //must be before inflating xml
 
         moveLeftTimer = new Timer();
@@ -50,17 +48,12 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
         gameFragment = (GameFragment)getFragmentManager().findFragmentById(R.id.fragment_game);
         gameFragment.setBoard(gameBoard);
         if(savedInstanceState != null) {
-            onPause();
+            gameState = GameState.PAUSED;
             gameBoard.restoreFromBundle(savedInstanceState);
             gameFragment.restoreFromBundle(savedInstanceState);
         }else{
-            this.newGame();
+            gameState = GameState.NOT_STARTED;
         }
-    }
-
-    public void newGame(){
-        gameState = GameState.NOT_STARTED;
-        gameFragment.pause();
     }
 
     @Override
@@ -84,11 +77,10 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     @Override
     public void onResume(){
         super.onResume();
-        gameThread = new Thread(gameFragment);
-        gameThread.start();
         switch(gameState){
             case PAUSED:
             {
+                gameFragment.pause();
                 if(dialog != null)
                     dialog.dismiss();
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -115,6 +107,7 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
             }
             case NOT_STARTED:
             {
+                gameFragment.pause();
                 if(dialog != null)
                     dialog.dismiss();
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -140,6 +133,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
                 break;
             }
         }
+        gameThread = new Thread(gameFragment);
+        gameThread.start();
     }
 
     @Override

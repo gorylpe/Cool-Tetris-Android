@@ -60,7 +60,6 @@ public class NextBlockPreviewSurfaceView extends SurfaceView{
     protected void onDraw(Canvas canvas) {
         if (board != null) {
             Block block = board.getNextBlock();
-            Log.d("next block drawing", block.toString());
             if(block != null) {
                 canvas.drawColor(board.getBackgroundPaint().getColor());
                 float fieldWidth = (float) getWidth() / 5;

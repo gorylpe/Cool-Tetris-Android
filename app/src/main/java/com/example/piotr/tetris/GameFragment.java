@@ -54,8 +54,6 @@ public class GameFragment extends Fragment implements Runnable {
     private GameBoard board;
 
     public GameFragment() {
-
-        notEnded = true;
         paused = true;
 
         nextMove = NextMoveState.GENERATE_BLOCK;
@@ -158,6 +156,7 @@ public class GameFragment extends Fragment implements Runnable {
 
     @Override
     public void run() {
+        notEnded = true;
         while(notEnded){
             synchronized (pauseLock){
                 while(paused){

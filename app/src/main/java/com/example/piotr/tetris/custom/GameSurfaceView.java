@@ -2,6 +2,7 @@ package com.example.piotr.tetris.custom;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
@@ -55,7 +56,7 @@ public class GameSurfaceView extends SurfaceView {
     protected void onDraw(Canvas canvas){
         if(board != null){
             canvas.drawColor(board.getBorderPaint().getColor());
-            //canvas.drawRect(1.0f, 1.0f, (float)getWidth() - 2.0f, (float)getHeight() - 2.0f, board.getBackgroundPaint());
+            canvas.drawRect(1.0f, 1.0f, (float)getWidth() - 2.0f, (float)getHeight() - 2.0f, board.getBackgroundPaint());
 
             float fieldWidth = (float)getWidth() / board.getColumns();
             float fieldHeight = (float)getHeight() / board.getRows();
