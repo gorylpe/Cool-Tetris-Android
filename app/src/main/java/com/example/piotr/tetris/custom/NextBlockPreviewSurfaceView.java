@@ -2,15 +2,10 @@ package com.example.piotr.tetris.custom;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.SurfaceView;
 import com.example.piotr.tetris.Block;
 import com.example.piotr.tetris.GameBoard;
-import com.example.piotr.tetris.PaintsContainer;
-import com.example.piotr.tetris.R;
 
 
 public class NextBlockPreviewSurfaceView extends SurfaceView{

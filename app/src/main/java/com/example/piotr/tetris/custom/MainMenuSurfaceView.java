@@ -2,13 +2,10 @@ package com.example.piotr.tetris.custom;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
 import com.example.piotr.tetris.Board;
-import com.example.piotr.tetris.GameFragment;
-import com.example.piotr.tetris.PaintsContainer;
 import com.example.piotr.tetris.R;
 
 
