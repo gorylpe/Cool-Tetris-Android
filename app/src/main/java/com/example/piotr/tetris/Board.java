@@ -36,8 +36,13 @@ public class Board {
         }
 
         private static final List<Field> values = Collections.unmodifiableList(Arrays.asList(Field.values()));
+
         public static Field get(int i){
             return values.get(i);
+        }
+
+        public static int getSize(){
+            return values.size();
         }
     }
 

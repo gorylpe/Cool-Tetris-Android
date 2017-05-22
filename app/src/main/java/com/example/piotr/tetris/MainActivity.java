@@ -15,13 +15,10 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements PaintsContainer {
+public class MainActivity extends AppCompatActivity{
 
-    public static final int REQUEST_PLAY_GAME = 0;
+    private static final int REQUEST_PLAY_GAME = 0;
     private final long delay = 60;
-
-    private Paint[] paints;
-    private Paint backgroundPaint;
 
     private Random random;
     private Handler uiHandler;
@@ -29,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements PaintsContainer {
 
     private Timer timer;
 
-    int[][] fields;
+    private Board board;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,33 +36,18 @@ public class MainActivity extends AppCompatActivity implements PaintsContainer {
 
         uiHandler = new Handler(getMainLooper());
 
-        paints = new Paint[8];
-        for(int i = 0; i < paints.length; ++i){
-            paints[i] = new Paint();
-        }
-        paints[0].setColor(ContextCompat.getColor(this, R.color.cyan));
-        paints[1].setColor(ContextCompat.getColor(this, R.color.blue));
-        paints[2].setColor(ContextCompat.getColor(this, R.color.orange));
-        paints[3].setColor(ContextCompat.getColor(this, R.color.yellow));
-        paints[4].setColor(ContextCompat.getColor(this, R.color.green));
-        paints[5].setColor(ContextCompat.getColor(this, R.color.purple));
-        paints[6].setColor(ContextCompat.getColor(this, R.color.red));
-        paints[7].setColor(ContextCompat.getColor(this, R.color.background));
+        board = new Board(this, 20, 60);
 
-        backgroundPaint = new Paint();
-        backgroundPaint.setColor(ContextCompat.getColor(this, R.color.background));
-
-        fields = new int[20][60];
-        for(int i = 0; i < fields.length; ++i){
-            for(int j = 0; j < fields[i].length; ++j){
-                fields[i][j] = random.nextDouble() < 0.2 ? random.nextInt(paints.length) : 7;
+        for(int i = 0; i < board.getColumns(); ++i){
+            for(int j = 0; j < board.getRows(); ++j){
+                board.setField(i, j, Board.Field.get(random.nextDouble() < 0.2 ? random.nextInt(Board.Field.getSize()) : 0));
             }
         }
 
         setContentView(R.layout.activity_main);
 
         mainMenuSurfaceView = ((MainMenuSurfaceView)findViewById(R.id.main_menu_surfaceview));
-        mainMenuSurfaceView.setFieldsAndPaints(fields, this);
+        mainMenuSurfaceView.setFieldsAndPaints(board);
     }
 
     public void startGame(View view){
@@ -102,16 +84,16 @@ public class MainActivity extends AppCompatActivity implements PaintsContainer {
     }
 
     private void moveFields(){
-        for(int i = 0; i < fields.length; ++i){
-            for(int j = fields[i].length - 1; j > 0; --j){
-                fields[i][j] = fields[i][j-1];
+        for(int i = 0; i < board.getColumns(); ++i){
+            for(int j =  board.getRows() - 1; j > 0 ; --j){
+                board.setField(i, j, board.getField(i, j - 1));
             }
         }
     }
 
     private void generateNewFields(){
-        for(int i = 0; i < fields.length; ++i){
-            fields[i][0] = random.nextDouble() < 0.15 ? random.nextInt(paints.length) : 7; //empty
+        for(int i = 0; i < board.getColumns(); ++i){
+            board.setField(i, 0, Board.Field.get(random.nextDouble() < 0.2 ? random.nextInt(Board.Field.getSize()) : 0));
         }
     }
     @Override
@@ -133,20 +115,5 @@ public class MainActivity extends AppCompatActivity implements PaintsContainer {
         timer.cancel();
         timer.purge();
         super.onPause();
-    }
-
-    @Override
-    public Paint[] getBlockPaints() {
-        return paints;
-    }
-
-    @Override
-    public Paint getBackgroundPaint() {
-        return backgroundPaint;
-    }
-
-    @Override
-    public Paint getBorderPaint() {
-        return null;
     }
 }
