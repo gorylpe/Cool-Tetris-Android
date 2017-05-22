@@ -7,10 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceView;
-import com.example.piotr.tetris.Board;
-import com.example.piotr.tetris.GameBoard;
-import com.example.piotr.tetris.GameFragment;
-import com.example.piotr.tetris.PaintsContainer;
+import com.example.piotr.tetris.*;
 
 public class GameSurfaceView extends SurfaceView {
 
@@ -58,7 +55,7 @@ public class GameSurfaceView extends SurfaceView {
     protected void onDraw(Canvas canvas){
         if(board != null){
             canvas.drawColor(board.getBorderPaint().getColor());
-            canvas.drawRect(1.0f, 1.0f, (float)getWidth() - 2.0f, (float)getHeight() - 2.0f, board.getBackgroundPaint());
+            //canvas.drawRect(1.0f, 1.0f, (float)getWidth() - 2.0f, (float)getHeight() - 2.0f, board.getBackgroundPaint());
 
             float fieldWidth = (float)getWidth() / board.getColumns();
             float fieldHeight = (float)getHeight() / board.getRows();
@@ -73,7 +70,7 @@ public class GameSurfaceView extends SurfaceView {
                 }
             }
 
-            GameBoard.Block block = board.getCurrentBlock();
+            Block block = board.getCurrentBlock();
             if (block != null) {
                 int[][] localCoords = block.getLocalCoords();
                 for (int[] coords : localCoords) {
@@ -83,7 +80,7 @@ public class GameSurfaceView extends SurfaceView {
                             y * fieldHeight + 1.0f,
                             (x + 1.0f) * fieldWidth - 2.0f,
                             (y + 1.0f) * fieldHeight - 2.0f,
-                            block.getPaint());
+                            board.getBlockPaint(block));
                 }
             }
         }

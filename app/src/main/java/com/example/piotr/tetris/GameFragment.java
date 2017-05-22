@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,9 +56,7 @@ public class GameFragment extends Fragment implements Runnable {
     public GameFragment() {
 
         notEnded = true;
-        paused = false;
-
-        board = new GameBoard(getActivity(), 10, 20);
+        paused = true;
 
         nextMove = NextMoveState.GENERATE_BLOCK;
 
@@ -69,12 +68,15 @@ public class GameFragment extends Fragment implements Runnable {
         level = 0;
     }
 
+    public void setBoard(GameBoard board){
+        this.board = board;
+    }
+
     public void saveToBundle(Bundle outState){
         outState.putInt("score", score);
         outState.putInt("level", level);
         outState.putFloat("blockMoveDelay", blockMoveDelay);
         outState.putSerializable("nextMove", nextMove);
-        board.saveToBundle(outState);
     }
 
     public void restoreFromBundle(Bundle savedInstanceState) {
@@ -86,7 +88,6 @@ public class GameFragment extends Fragment implements Runnable {
 
         blockMoveDelay = savedInstanceState.getFloat("blockMoveDelay");
         nextMove = (NextMoveState)savedInstanceState.getSerializable("nextMove");
-        board.restoreFromBundle(savedInstanceState);
         redrawBoard();
         redrawNextBlock();
     }
@@ -94,12 +95,16 @@ public class GameFragment extends Fragment implements Runnable {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_game, container, false);
-        gameSurfaceView = (GameSurfaceView)view.findViewById(R.id.game_surface_view);
+        return inflater.inflate(R.layout.fragment_game, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState){
+        super.onActivityCreated(savedInstanceState);
+        gameSurfaceView = (GameSurfaceView)getView().findViewById(R.id.game_surface_view);
         gameSurfaceView.setBoard(board);
-        nextBlockPreviewSurfaceView = (NextBlockPreviewSurfaceView)view.findViewById(R.id.next_block);
+        nextBlockPreviewSurfaceView = (NextBlockPreviewSurfaceView)getView().findViewById(R.id.next_block);
         nextBlockPreviewSurfaceView.setBoard(board);
-        return view;
     }
 
     private void onGameEnd(){
@@ -127,7 +132,8 @@ public class GameFragment extends Fragment implements Runnable {
         uiHandler.post(new Runnable() {
             @Override
             public void run() {
-                nextBlockPreviewSurfaceView.invalidate();
+                if(nextBlockPreviewSurfaceView != null)
+                    nextBlockPreviewSurfaceView.invalidate();
             }
         });
     }
@@ -153,28 +159,45 @@ public class GameFragment extends Fragment implements Runnable {
     @Override
     public void run() {
         while(notEnded){
+            synchronized (pauseLock){
+                while(paused){
+                    try{
+                        pauseLock.wait();
+                    } catch(InterruptedException e){}
+                }
+            }
+
             long lastTime = System.currentTimeMillis();
 
             switch(nextMove){
                 case GENERATE_BLOCK: {
-                    if(board.generateNewBlock()){
+                    boolean isNewBlockGenerated = board.generateNewBlock();
+                    if(isNewBlockGenerated){
                         nextMove = NextMoveState.MOVE_BLOCK;
+                        redrawNextBlock();
                     } else {
                         onGameEnd();
                     }
                     break;
                 }
                 case MOVE_BLOCK: {
+                    boolean canBlockMoveDown = true;
                     if(isAccelerated){
                         if (blockMoveTimeAfterLastMove > blockMoveAcceleratedDelay) {
                             blockMoveTimeAfterLastMove = 0.0f;
-                            board.moveDownCurrentBlock();
+                            canBlockMoveDown = board.moveDownCurrentBlock();
                         }
                     } else {
                         if (blockMoveTimeAfterLastMove > blockMoveDelay) {
                             blockMoveTimeAfterLastMove = 0.0f;
-                            board.moveDownCurrentBlock();
+                            canBlockMoveDown = board.moveDownCurrentBlock();
                         }
+                    }
+                    if(!canBlockMoveDown){
+                        board.placeCurrentBlock();
+                        int scoreChange = board.checkAndRemoveFullLines();
+                        addScore(scoreChange);
+                        nextMove = NextMoveState.GENERATE_BLOCK;
                     }
                     break;
                 }
@@ -194,14 +217,6 @@ public class GameFragment extends Fragment implements Runnable {
             try{
                 Thread.sleep(frameTimeInMs - (System.currentTimeMillis() - lastTime));
             } catch(InterruptedException | IllegalArgumentException e){}
-
-            synchronized (pauseLock){
-                while(paused){
-                    try{
-                        pauseLock.wait();
-                    } catch(InterruptedException e){}
-                }
-            }
         }
     }
 

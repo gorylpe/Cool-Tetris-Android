@@ -26,4 +26,14 @@
         <item>@color/purple</item>
         <item>@color/red</item>
     </array>
+
+    <array name="leaderboards_colors">
+        <item>@color/cyan</item>
+        <item>@color/blue</item>
+        <item>@color/orange</item>
+        <item>@color/yellow</item>
+        <item>@color/green</item>
+        <item>@color/purple</item>
+        <item>@color/red</item>
+    </array>
 </resources>

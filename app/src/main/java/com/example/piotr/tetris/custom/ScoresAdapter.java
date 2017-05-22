@@ -62,8 +62,8 @@ public class ScoresAdapter extends BaseAdapter {
         int nameEnd = entries.get(i).getName().length();
         int scoreStart = entries.get(i).getName().length() + 1;
         int scoreEnd = scoreStart +  Integer.toString(entries.get(i).getScore()).length();
-        int[] tetrisColors = context.getResources().getIntArray(R.array.tetris_colors);
-        spannableString.setSpan(new ForegroundColorSpan(i >= tetrisColors.length ? tetrisColors[i % tetrisColors.length] : tetrisColors[i]), nameStart, nameEnd, 0);
+        int[] leaderboardsColors = context.getResources().getIntArray(R.array.leaderboards_colors);
+        spannableString.setSpan(new ForegroundColorSpan(i >= leaderboardsColors.length ? leaderboardsColors[i % leaderboardsColors.length] : leaderboardsColors[i]), nameStart, nameEnd, 0);
         spannableString.setSpan(new StyleSpan(Typeface.BOLD), scoreStart, scoreEnd, 0);
         spannableString.setSpan(new RelativeSizeSpan(1.5f), scoreStart, scoreEnd, 0);
         textView.setText(spannableString);

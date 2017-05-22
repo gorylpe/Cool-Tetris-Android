@@ -3,120 +3,12 @@ package com.example.piotr.tetris;
 import android.content.Context;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.Log;
 
-import java.io.Serializable;
 import java.util.*;
 
-/**
- * Created by Piotr on 21.05.2017.
- */
+
 public class GameBoard extends Board {
-
-    public enum BlockCoords {
-        I(1, new int[][][]{{{-2,0},{-1,0},{0,0},{1,0}} , {{0,-1},{0,0},{0,1},{0,2}}}),
-        J(2, new int[][][]{{{-1,0},{0,0},{1,0},{1,1}} , {{-1,1},{0,1},{0,0},{0,-1}} , {{-1,-1},{-1,0},{0,0},{1,0}} , {{1,-1},{0,-1},{0,0},{0,1}}}),
-        L(3, new int[][][]{{{-1,1},{-1,0},{0,0},{1,0}}, {{-1,-1},{0,-1},{0,0},{0,1}}, {{-1,0},{0,0},{1,0},{1,-1}} , {{0,-1},{0,0},{0,1},{1,1}}}),
-        O(4, new int[][][]{{{0,0},{1,0},{0,1},{1,1}}}),
-        S(5, new int[][][]{{{-1,1},{0,1},{0,0},{1,0}} , {{-1,-1},{-1,0},{0,0},{0,1}}}),
-        T(6, new int[][][]{{{-1,0},{0,0},{1,0},{0,1}} , {{-1,0},{0,0},{0,-1},{0,1}} , {{-1,0},{0,0},{1,0},{0,-1}} , {{0,0},{0,-1},{0,1},{1,0}}}),
-        Z(7, new int[][][]{{{-1,0},{0,0},{0,1},{1,1}} , {{-1,1},{-1,0},{0,0},{0,-1}}});
-
-        private final int block[][][];
-        private final int value;
-
-        BlockCoords(int value, int[][][] block){
-            this.block = block;
-            this.value = value;
-        }
-
-        public int getValue(){
-            return value;
-        }
-
-        private static final List<BlockCoords> values = Collections.unmodifiableList(Arrays.asList(BlockCoords.values()));
-        public static BlockCoords get(int i){
-            return values.get(i);
-        }
-
-        public static int getSize(){
-            return values.size();
-        }
-
-        public int[][] getCoords(int rotation){
-            return block[rotation];
-        }
-
-        public int getRotationsNumber(){
-            return block.length;
-        }
-    }
-
-    public class Block implements Serializable{
-        private BlockCoords coords;
-        private int rotation;
-        private int x;
-        private int y;
-
-        public Block(BlockCoords coords, int x, int y){
-            this.coords = coords;
-            this.x = x;
-            this.y = y;
-            rotation = 0;
-        }
-
-        public void rotateRight(){
-            if (rotation == coords.getRotationsNumber() - 1) {
-                rotation = 0;
-            } else {
-                rotation++;
-            }
-        }
-
-        public void rotateLeft(){
-            if (rotation == 0) {
-                rotation = coords.getRotationsNumber() - 1;
-            } else {
-                rotation--;
-            }
-        }
-
-        public void moveUp(){
-            y--;
-        }
-
-
-        public void moveDown(){
-            y++;
-        }
-
-        public void moveLeft(){
-            x--;
-        }
-
-        public void moveRight(){
-            x++;
-        }
-
-        public Paint getPaint(){
-            return GameBoard.this.getPaint(coords.getValue());
-        }
-
-        public int getX(){
-            return x;
-        }
-
-        public int getY(){
-            return y;
-        }
-
-        public int[][] getLocalCoords(){
-            return coords.getCoords(rotation);
-        }
-
-        public Field getFieldType(){
-            return Field.get(coords.getValue());
-        }
-    }
 
     private Random random;
 
@@ -134,7 +26,7 @@ public class GameBoard extends Board {
         random = new Random();
 
         //must be to generate first currentBlock
-        nextBlock = new Block(BlockCoords.get(random.nextInt(BlockCoords.getSize())), startX, startY);
+        nextBlock = new Block(Block.BlockCoords.get(random.nextInt(Block.BlockCoords.getSize())), startX, startY);
     }
 
     @Override
@@ -157,6 +49,10 @@ public class GameBoard extends Board {
 
     public Block getNextBlock(){
         return nextBlock;
+    }
+
+    public Paint getBlockPaint(Block block) {
+        return getPaint(block.getValue());
     }
 
     private enum MoveType{
@@ -241,7 +137,7 @@ public class GameBoard extends Board {
         if(!checkIfMoveCurrentBlockIsPossible(MoveType.CREATE_BLOCK))
             return false;
 
-        nextBlock = new Block(BlockCoords.get(random.nextInt(BlockCoords.getSize())), startX, startY);
+        nextBlock = new Block(Block.BlockCoords.get(random.nextInt(Block.BlockCoords.getSize())), startX, startY);
 
         return true;
     }
@@ -299,10 +195,6 @@ public class GameBoard extends Board {
         }
 
         return removedLines;
-    }
-
-    public void removeCurrentBlock(){
-        currentBlock = null;
     }
 
     public void moveLeftCurrentBlock() {

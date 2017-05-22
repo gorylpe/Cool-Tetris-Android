@@ -24,6 +24,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     private GameFragment gameFragment;
     private Thread gameThread;
 
+    private GameBoard gameBoard;
+
     private AlertDialog dialog;
 
     private Timer moveLeftTimer;
@@ -34,6 +36,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
+        Log.d("oncreate", "d");
+
         //must be before inflating xml
 
         moveLeftTimer = new Timer();
@@ -41,15 +45,17 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
 
         setContentView(R.layout.activity_game);
 
+        gameBoard = new GameBoard(this, 10, 20);
+
         gameFragment = (GameFragment)getFragmentManager().findFragmentById(R.id.fragment_game);
+        gameFragment.setBoard(gameBoard);
         if(savedInstanceState != null) {
             onPause();
+            gameBoard.restoreFromBundle(savedInstanceState);
             gameFragment.restoreFromBundle(savedInstanceState);
         }else{
             this.newGame();
         }
-        gameThread = new Thread(gameFragment);
-        gameThread.start();
     }
 
     public void newGame(){
@@ -60,11 +66,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
     @Override
     public void onSaveInstanceState(Bundle bundle){
         super.onSaveInstanceState(bundle);
-        gameFragment.end();
-        try {
-            gameThread.join();
-        }catch (InterruptedException e){}
         gameFragment.saveToBundle(bundle);
+        gameBoard.saveToBundle(bundle);
     }
 
     @Override
@@ -72,11 +75,17 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
         super.onPause();
         gameState = GameState.PAUSED;
         gameFragment.pause();
+        gameFragment.end();
+        try {
+            gameThread.join();
+        }catch (InterruptedException e){}
     }
 
     @Override
     public void onResume(){
         super.onResume();
+        gameThread = new Thread(gameFragment);
+        gameThread.start();
         switch(gameState){
             case PAUSED:
             {
@@ -147,8 +156,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
         moveLeftTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(gameFragment != null)
-                    gameFragment.moveLeft();
+                if(gameBoard != null)
+                    gameBoard.moveLeftCurrentBlock();
             }
         }, 0, moveDelay);
     }
@@ -165,8 +174,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
         moveRightTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(gameFragment != null)
-                    gameFragment.moveRight();
+                if(gameBoard != null)
+                    gameBoard.moveRightCurrentBlock();
             }
         }, 0, moveDelay);
     }
@@ -179,8 +188,8 @@ public class GameActivity extends AppCompatActivity implements  GameFragment.OnS
 
     @Override
     public void onPressRotate() {
-        if(gameFragment != null)
-            gameFragment.rotate();
+        if(gameBoard != null)
+            gameBoard.rotateLeftCurrentBlock();
     }
 
     @Override

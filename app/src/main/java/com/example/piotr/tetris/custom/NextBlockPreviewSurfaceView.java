@@ -5,7 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceView;
+import com.example.piotr.tetris.Block;
 import com.example.piotr.tetris.GameBoard;
 import com.example.piotr.tetris.PaintsContainer;
 import com.example.piotr.tetris.R;
@@ -57,7 +59,8 @@ public class NextBlockPreviewSurfaceView extends SurfaceView{
     @Override
     protected void onDraw(Canvas canvas) {
         if (board != null) {
-            GameBoard.Block block = board.getNextBlock();
+            Block block = board.getNextBlock();
+            Log.d("next block drawing", block.toString());
             if(block != null) {
                 canvas.drawColor(board.getBackgroundPaint().getColor());
                 float fieldWidth = (float) getWidth() / 5;
@@ -71,7 +74,7 @@ public class NextBlockPreviewSurfaceView extends SurfaceView{
                             y * fieldHeight + 1.0f,
                             (x + 1.0f) * fieldWidth - 2.0f,
                             (y + 1.0f) * fieldHeight - 2.0f,
-                            block.getPaint());
+                            board.getBlockPaint(block));
                 }
             }
         }
