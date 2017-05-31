@@ -44,7 +44,7 @@ public class GameFragment extends Fragment implements Runnable {
     private final float blockMoveStartDelay = 500.0f;
     private final float blockMoveStopDelay = 100.0f;
     private final float levelConst = (blockMoveStartDelay - blockMoveStopDelay) / maxLevel;
-    private final float blockMoveDelayDelta = -0.1f;
+    private final float blockMoveDelayDelta = -0.02f;
     private float blockMoveDelay;
     private float blockMoveTimeAfterLastMove;
     private final float blockMoveAcceleratedDelay = blockMoveStopDelay / 2;
