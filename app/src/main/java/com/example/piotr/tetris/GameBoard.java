@@ -180,8 +180,6 @@ public class GameBoard extends Board {
             }
         }
 
-        int removedLines = 0;
-
         if(linesToRemove.size() > 0){
             for(int line : linesToRemove){
                 for(int y = line; y > 0; --y){
@@ -190,11 +188,9 @@ public class GameBoard extends Board {
                     }
                 }
             }
-
-            removedLines++;
         }
 
-        return removedLines;
+        return linesToRemove.size();
     }
 
     public void moveLeftCurrentBlock() {

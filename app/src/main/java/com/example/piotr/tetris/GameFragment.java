@@ -39,13 +39,12 @@ public class GameFragment extends Fragment implements Runnable {
         MOVE_BLOCK
     }
 
-    public static final Object blockMoveLock = new Object();
     private NextMoveState nextMove;
 
     private final float blockMoveStartDelay = 500.0f;
     private final float blockMoveStopDelay = 100.0f;
-    private final float levelConst = (blockMoveStartDelay - blockMoveStopDelay) / 9;
-    private final float blockMoveDelayDelta = -0.02f;
+    private final float levelConst = (blockMoveStartDelay - blockMoveStopDelay) / maxLevel;
+    private final float blockMoveDelayDelta = -0.1f;
     private float blockMoveDelay;
     private float blockMoveTimeAfterLastMove;
     private final float blockMoveAcceleratedDelay = blockMoveStopDelay / 2;
@@ -209,9 +208,10 @@ public class GameFragment extends Fragment implements Runnable {
             if(blockMoveDelay <= blockMoveStopDelay)
                 blockMoveDelay = blockMoveStopDelay;
 
-            int newLevel = maxLevel + 1 - (int)(blockMoveDelay / levelConst);
-            if(newLevel != level)
-                setLevel(newLevel);
+            //levels are from 1 to maxlevel inclusive but we want 0-start level as multiplier so level + 1 - 1
+            float nextLevelDelay = blockMoveStartDelay - ((level + 1 - 1) * levelConst);
+            if(blockMoveDelay < nextLevelDelay)
+                setLevel(level + 1);
 
             try{
                 Thread.sleep(frameTimeInMs - (System.currentTimeMillis() - lastTime));
@@ -236,16 +236,16 @@ public class GameFragment extends Fragment implements Runnable {
     private void addScore(int scoreChange){
         switch(scoreChange){
             case 1:
-                scoreChange = (level + 1) * 40;
+                scoreChange = level * 40;
                 break;
             case 2:
-                scoreChange = (level + 1) * 100;
+                scoreChange = level * 100;
                 break;
             case 3:
-                scoreChange = (level + 1) * 300;
+                scoreChange = level * 300;
                 break;
             case 4:
-                scoreChange = (level + 1) * 1200;
+                scoreChange = level * 1200;
                 break;
         }
         score += scoreChange;
